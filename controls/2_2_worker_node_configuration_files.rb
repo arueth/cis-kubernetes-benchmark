@@ -30,7 +30,7 @@ control 'cis-kubernetes-benchmark-2.2.1' do
   end
 
   describe file('/etc/kubernetes/kubelet.conf').mode.to_s(8) do
-    it { should match(/[0246][024][024]/) }
+    its('command') { should match(/[0246][024][024]/) }
   end
 end
 
@@ -47,8 +47,8 @@ control 'cis-kubernetes-benchmark-2.2.2' do
   end
 
   describe file('/etc/kubernetes/kubelet.conf') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -62,7 +62,7 @@ control 'cis-kubernetes-benchmark-2.2.3' do
 
   if file('/etc/systemd/system/kubelet.service.d/10-kubeadm.conf').exist?
     describe file('/etc/systemd/system/kubelet.service.d/10-kubeadm.conf').mode.to_s(8) do
-      it { should match(/[0246][024][024]/) }
+      its('command') { should match(/[0246][024][024]/) }
     end
   else
     describe 'cis-kubernetes-benchmark-2.2.3' do
@@ -81,8 +81,8 @@ control 'cis-kubernetes-benchmark-2.2.4' do
 
   if file('/etc/systemd/system/kubelet.service.d/10-kubeadm.conf').exist?
     describe file('/etc/systemd/system/kubelet.service.d/10-kubeadm.conf') do
-      it { should be_owned_by 'root' }
-      it { should be_grouped_into 'root' }
+      its('command') { should be_owned_by 'root' }
+      its('command') { should be_grouped_into 'root' }
     end
   else
     describe 'cis-kubernetes-benchmark-1.4.10' do
@@ -104,7 +104,7 @@ control 'cis-kubernetes-benchmark-2.2.5' do
 
     if file(conf_file).exist?
       describe file(conf_file).mode.to_s(8) do
-        it { should match(/[0246][024][024]/) }
+        its('command') { should match(/[0246][024][024]/) }
       end
     else
       describe 'cis-kubernetes-benchmark-2.2.5' do
@@ -131,8 +131,8 @@ control 'cis-kubernetes-benchmark-2.2.6' do
 
     if file(conf_file).exist?
       describe file(conf_file) do
-        it { should be_owned_by 'root' }
-        it { should be_grouped_into 'root' }
+        its('command') { should be_owned_by 'root' }
+        its('command') { should be_grouped_into 'root' }
       end
     else
       describe 'cis-kubernetes-benchmark-2.2.6' do
@@ -163,7 +163,7 @@ control 'cis-kubernetes-benchmark-2.2.7' do
       end
     else
       describe file(ca_cert_path.last.first).mode.to_s(8) do
-        it { should match(/[0246][024][024]/) }
+        its('command') { should match(/[0246][024][024]/) }
       end
     end
   else
@@ -190,8 +190,8 @@ control 'cis-kubernetes-benchmark-2.2.8' do
       end
     else
       describe file(ca_cert_path.last.first) do
-        it { should be_owned_by 'root' }
-        it { should be_grouped_into 'root' }
+        its('command') { should be_owned_by 'root' }
+        its('command') { should be_grouped_into 'root' }
       end
     end
   else
@@ -218,8 +218,8 @@ control 'cis-kubernetes-benchmark-2.2.9' do
       end
     else
       describe file(config_path.last.first) do
-        it { should be_owned_by 'root' }
-        it { should be_grouped_into 'root' }
+        its('command') { should be_owned_by 'root' }
+        its('command') { should be_grouped_into 'root' }
       end
     end
   else
@@ -246,7 +246,7 @@ control 'cis-kubernetes-benchmark-2.2.10' do
       end
     else
       describe file(config_path.last.first).mode.to_s(8) do
-        it { should match(/[0246][024][024]/) }
+        its('command') { should match(/[0246][024][024]/) }
       end
     end
   else

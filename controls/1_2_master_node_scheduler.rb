@@ -17,13 +17,7 @@
 
 title '1.2 Master Node: Scheduler'
 
-scheduler = attribute('scheduler')
-# fallback if scheduler attribute is not defined
-scheduler = kubernetes.scheduler_bin if scheduler.empty?
-
-only_if('scheduler not found') do
-  processes(scheduler).exists?
-end
+scheduler = attribute('scheduler', value: kubernetes.scheduler_container)
 
 control 'cis-kubernetes-benchmark-1.2.1' do
   title 'Ensure that the --profiling argument is set to false'
@@ -33,8 +27,8 @@ control 'cis-kubernetes-benchmark-1.2.1' do
   tag cis: 'kubernetes:1.2.1'
   tag level: 1
 
-  describe processes(scheduler).commands.to_s do
-    it { should match(/--profiling=false/) }
+  describe docker_container(scheduler) do
+    its('command') { should match(/--profiling=false/) }
   end
 end
 
@@ -47,11 +41,14 @@ control 'cis-kubernetes-benchmark-1.2.2' do
   tag level: 1
 
   describe.one do
-    describe processes(scheduler).commands.to_s do
-      it { should match(/--address=127\.0\.0\.1/) }
+    describe docker_container(scheduler) do
+      its('command') { should match(/--address=127\.0\.0\.1/) }
     end
-    describe processes(scheduler).commands.to_s do
-      it { should match(/--bind-address=127\.0\.0\.1/) }
+    describe docker_container(scheduler) do
+      its('command') { should match(/--address=0\.0\.0\.0/) }
+    end
+    describe docker_container(scheduler) do
+      its('command') { should match(/--bind-address=127\.0\.0\.1/) }
     end
   end
 end

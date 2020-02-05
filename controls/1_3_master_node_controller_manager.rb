@@ -17,13 +17,7 @@
 
 title '1.3 Master Node: Controller Manager'
 
-controller_manager = attribute('controller_manager')
-# fallback if scheduler attribute is not defined
-controller_manager = kubernetes.controllermanager_bin if controller_manager.empty?
-
-only_if('controller manager not found') do
-  processes(controller_manager).exists?
-end
+controller_manager = attribute('controllermanager_container', value: kubernetes.controllermanager_container)
 
 control 'cis-kubernetes-benchmark-1.3.1' do
   title 'Ensure that the --terminated-pod-gc-threshold argument is set as appropriate'
@@ -33,8 +27,8 @@ control 'cis-kubernetes-benchmark-1.3.1' do
   tag cis: 'kubernetes:1.3.1'
   tag level: 1
 
-  describe processes(controller_manager).commands.to_s do
-    it { should match(/--terminated-pod-gc-threshold=/) }
+  describe docker_container(controller_manager) do
+    its('command') { should match(/--terminated-pod-gc-threshold=/) }
   end
 end
 
@@ -46,8 +40,8 @@ control 'cis-kubernetes-benchmark-1.3.2' do
   tag cis: 'kubernetes:1.3.2'
   tag level: 1
 
-  describe processes(controller_manager).commands.to_s do
-    it { should match(/--profiling=false/) }
+  describe docker_container(controller_manager) do
+    its('command') { should match(/--profiling=false/) }
   end
 end
 
@@ -59,8 +53,8 @@ control 'cis-kubernetes-benchmark-1.3.3' do
   tag cis: 'kubernetes:1.3.3'
   tag level: 1
 
-  describe processes(controller_manager).commands.to_s do
-    it { should match(/--use-service-account-credentials=true/) }
+  describe docker_container(controller_manager) do
+    its('command') { should match(/--use-service-account-credentials[=true]*/) }
   end
 end
 
@@ -72,8 +66,8 @@ control 'cis-kubernetes-benchmark-1.3.4' do
   tag cis: 'kubernetes:1.3.4'
   tag level: 1
 
-  describe processes(controller_manager).commands.to_s do
-    it { should match(/--service-account-private-key-file=/) }
+  describe docker_container(controller_manager) do
+    its('command') { should match(/--service-account-private-key-file=/) }
   end
 end
 
@@ -85,22 +79,23 @@ control 'cis-kubernetes-benchmark-1.3.5' do
   tag cis: 'kubernetes:1.3.5'
   tag level: 1
 
-  describe processes(controller_manager).commands.to_s do
-    it { should match(/--root-ca-file=/) }
+  describe docker_container(controller_manager) do
+    its('command') { should match(/--root-ca-file=/) }
   end
 end
 
 control 'cis-kubernetes-benchmark-1.3.6' do
   title 'Ensure that the RotateKubeletServerCertificate argument is set to true'
-  desc "Enable kubelet server certificate rotation on controller-manager.\n\nRationale: `RotateKubeletServerCertificate` causes the kubelet to both request a serving certificate after bootstrapping its client credentials and rotate the certificate as its existing credentials expire. This automated periodic rotation ensures that the there are no downtimes due to expired certificates and thus addressing availability in the CIA security triad.\nNote: This recommendation only applies if you let kubelets get their certificates from the API server. In case your kubelet certificates come from an outside authority/tool (e.g. Vault) then you need to take care of rotation yourself."
+  desc "Enable kubelet server certificate rotation on controller-manager, default is true since Kubernetes v1.12.\n\nRationale: `RotateKubeletServerCertificate` causes the kubelet to both request a serving certificate after bootstrapping its client credentials and rotate the certificate as its existing credentials expire. This automated periodic rotation ensures that the there are no downtimes due to expired certificates and thus addressing availability in the CIA security triad.\nNote: This recommendation only applies if you let kubelets get their certificates from the API server. In case your kubelet certificates come from an outside authority/tool (e.g. Vault) then you need to take care of rotation yourself."
   impact 1.0
 
   tag cis: 'kubernetes:1.3.6'
   tag level: 1
 
-  describe processes(controller_manager).commands.to_s do
-    it { should match(/--feature-gates=(?:.)*RotateKubeletServerCertificate=true,*(?:.)*/) }
+  describe docker_container(controller_manager) do
+    its('command') { should_not match(/--feature-gates=(?:.)*RotateKubeletServerCertificate=false,*(?:.)*/) }
   end
+  
 end
 
 control 'cis-kubernetes-benchmark-1.3.7' do
@@ -112,11 +107,15 @@ control 'cis-kubernetes-benchmark-1.3.7' do
   tag level: 1
 
   describe.one do
-    describe processes(controller_manager).commands.to_s do
-      it { should match(/--address=127\.0\.0\.1/) }
+    describe docker_container(controller_manager) do
+      its('command') { should match(/--address=127\.0\.0\.1/) }
     end
-    describe processes(controller_manager).commands.to_s do
-      it { should match(/--bind-address=127\.0\.0\.1/) }
+    describe docker_container(controller_manager) do
+      its('command') { should match(/--address=0\.0\.0\.0/) }
     end
+    describe docker_container(controller_manager) do
+      its('command') { should match(/--bind-address=127\.0\.0\.1/) }
+    end
+    
   end
 end

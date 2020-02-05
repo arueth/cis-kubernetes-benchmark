@@ -30,7 +30,7 @@ control 'cis-kubernetes-benchmark-1.4.1' do
   end
 
   describe file('/etc/kubernetes/manifests/kube-apiserver.yaml').mode.to_s(8) do
-    it { should match(/[0246][024][024]/) }
+    its('command') { should match(/[0246][024][024]/) }
   end
 end
 
@@ -47,8 +47,8 @@ control 'cis-kubernetes-benchmark-1.4.2' do
   end
 
   describe file('/etc/kubernetes/manifests/kube-apiserver.yaml') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -65,7 +65,7 @@ control 'cis-kubernetes-benchmark-1.4.3' do
   end
 
   describe file('/etc/kubernetes/manifests/kube-controller-manager.yaml').mode.to_s(8) do
-    it { should match(/[0246][024][024]/) }
+    its('command') { should match(/[0246][024][024]/) }
   end
 end
 
@@ -82,8 +82,8 @@ control 'cis-kubernetes-benchmark-1.4.4' do
   end
 
   describe file('/etc/kubernetes/manifests/kube-controller-manager.yaml') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -100,7 +100,7 @@ control 'cis-kubernetes-benchmark-1.4.5' do
   end
 
   describe file('/etc/kubernetes/manifests/kube-scheduler.yaml').mode.to_s(8) do
-    it { should match(/[0246][024][024]/) }
+    its('command') { should match(/[0246][024][024]/) }
   end
 end
 
@@ -117,8 +117,8 @@ control 'cis-kubernetes-benchmark-1.4.6' do
   end
 
   describe file('/etc/kubernetes/manifests/kube-scheduler.yaml') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -135,7 +135,7 @@ control 'cis-kubernetes-benchmark-1.4.7' do
   end
 
   describe file('/etc/kubernetes/manifests/etcd.yaml').mode.to_s(8) do
-    it { should match(/[0246][024][024]/) }
+    its('command') { should match(/[0246][024][024]/) }
   end
 end
 
@@ -152,8 +152,8 @@ control 'cis-kubernetes-benchmark-1.4.8' do
   end
 
   describe file('/etc/kubernetes/manifests/etcd.yaml') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -167,7 +167,7 @@ control 'cis-kubernetes-benchmark-1.4.9' do
 
   if file('/etc/sysconfig/flanneld').exist?
     describe file('/etc/sysconfig/flanneld').mode.to_s(8) do
-      it { should match(/[0246][024][024]/) }
+      its('command') { should match(/[0246][024][024]/) }
     end
   else
     describe 'cis-kubernetes-benchmark-1.4.9' do
@@ -187,8 +187,8 @@ control 'cis-kubernetes-benchmark-1.4.10' do
 
   if file('/etc/sysconfig/flanneld').exist?
     describe file('/etc/sysconfig/flanneld') do
-      it { should be_owned_by 'root' }
-      it { should be_grouped_into 'root' }
+      its('command') { should be_owned_by 'root' }
+      its('command') { should be_grouped_into 'root' }
     end
   else
     describe 'cis-kubernetes-benchmark-1.4.10' do
@@ -223,7 +223,7 @@ control 'cis-kubernetes-benchmark-1.4.11' do
 
   if !data_dir.empty?
     describe file(data_dir).mode.to_s(8) do
-      it { should match(/[01234567]00/) }
+      its('command') { should match(/[01234567]00/) }
     end
   else
     describe 'cis-kubernetes-benchmark-1.4.11' do
@@ -258,8 +258,8 @@ control 'cis-kubernetes-benchmark-1.4.12' do
 
   if !data_dir.empty?
     describe file(data_dir) do
-      it { should be_owned_by 'etcd' }
-      it { should be_grouped_into 'etcd' }
+      its('command') { should be_owned_by 'etcd' }
+      its('command') { should be_grouped_into 'etcd' }
     end
   else
     describe 'cis-kubernetes-benchmark-1.4.12' do
@@ -281,7 +281,7 @@ control 'cis-kubernetes-benchmark-1.4.13' do
   end
 
   describe file('/etc/kubernetes/admin.conf').mode.to_s(8) do
-    it { should match(/[0246][024][024]/) }
+    its('command') { should match(/[0246][024][024]/) }
   end
 end
 
@@ -298,8 +298,8 @@ control 'cis-kubernetes-benchmark-1.4.14' do
   end
 
   describe file('/etc/kubernetes/admin.conf') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -316,7 +316,7 @@ control 'cis-kubernetes-benchmark-1.4.15' do
   end
 
   describe file('/etc/kubernetes/scheduler.conf').mode.to_s(8) do
-    it { should match(/[0246][024][024]/) }
+    its('command') { should match(/[0246][024][024]/) }
   end
 end
 
@@ -333,8 +333,8 @@ control 'cis-kubernetes-benchmark-1.4.16' do
   end
 
   describe file('/etc/kubernetes/scheduler.conf') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -351,7 +351,7 @@ control 'cis-kubernetes-benchmark-1.4.17' do
   end
 
   describe file('/etc/kubernetes/controller-manager.conf').mode.to_s(8) do
-    it { should match(/[0246][024][024]/) }
+    its('command') { should match(/[0246][024][024]/) }
   end
 end
 
@@ -368,8 +368,8 @@ control 'cis-kubernetes-benchmark-1.4.18' do
   end
 
   describe file('/etc/kubernetes/controller-manager.conf') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -386,8 +386,8 @@ control 'cis-kubernetes-benchmark-1.4.19' do
   end
 
   describe directory('/etc/kubernetes/pki') do
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
+    its('command') { should be_owned_by 'root' }
+    its('command') { should be_grouped_into 'root' }
   end
 end
 
@@ -411,7 +411,7 @@ control 'cis-kubernetes-benchmark-1.4.20' do
   else
     cert_files.each do |cert|
       describe file(cert).mode.to_s(8) do
-        it { should match(/[0246][024][024]/) }
+        its('command') { should match(/[0246][024][024]/) }
       end
     end
   end

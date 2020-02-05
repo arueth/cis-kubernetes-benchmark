@@ -17,13 +17,7 @@
 
 title '2.1 Worker Node: Kubelet'
 
-kubelet = attribute('kubelet')
-# fallback if kubelet attribute is not defined
-kubelet = kubernetes.kubelet_bin if kubelet.empty?
-
-only_if('kubelet not found') do
-  processes(kubelet).exists?
-end
+kubelet = attribute('kubelet_container', value: kubernetes.kubelet_container)
 
 control 'cis-kubernetes-benchmark-2.1.1' do
   title 'Ensure that the --anonymous-auth argument is set to false'
@@ -33,8 +27,8 @@ control 'cis-kubernetes-benchmark-2.1.1' do
   tag cis: 'kubernetes:2.1.1'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--anonymous-auth=false/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--anonymous-auth=false/) }
   end
 end
 
@@ -46,9 +40,9 @@ control 'cis-kubernetes-benchmark-2.1.2' do
   tag cis: 'kubernetes:2.1.2'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should_not match(/--authorization-mode=(?:.)*AlwaysAllow,*(?:.)*/) }
-    it { should match(/--authorization-mode=/) }
+  describe docker_container(kubelet) do
+    its('command') { should_not match(/--authorization-mode=(?:.)*AlwaysAllow,*(?:.)*/) }
+    its('command') { should match(/--authorization-mode=/) }
   end
 end
 
@@ -60,8 +54,8 @@ control 'cis-kubernetes-benchmark-2.1.3' do
   tag cis: 'kubernetes:2.1.3'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--client-ca-file=/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--client-ca-file=/) }
   end
 end
 
@@ -73,8 +67,8 @@ control 'cis-kubernetes-benchmark-2.1.4' do
   tag cis: 'kubernetes:2.1.4'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--read-only-port=0/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--read-only-port=0/) }
   end
 end
 
@@ -86,8 +80,8 @@ control 'cis-kubernetes-benchmark-2.1.5' do
   tag cis: 'kubernetes:2.1.5'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should_not match(/--streaming-connection-idle-timeout=0/) }
+  describe docker_container(kubelet) do
+    its('command') { should_not match(/--streaming-connection-idle-timeout=0/) }
   end
 end
 
@@ -99,8 +93,9 @@ control 'cis-kubernetes-benchmark-2.1.6' do
   tag cis: 'kubernetes:2.1.6'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--protect-kernel-defaults=true/) }
+  describe docker_container(kubelet) do
+    its('command') { should_not match(/--protect-kernel-defaults=false/) }
+    its('command') { should match(/--protect-kernel-defaults[=true]*/) }
   end
 end
 
@@ -112,8 +107,9 @@ control 'cis-kubernetes-benchmark-2.1.7' do
   tag cis: 'kubernetes:2.1.7'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--make-iptables-util-chains=true/) }
+  describe docker_container(kubelet) do
+    its('command') { should_not match(/--make-iptables-util-chains=false/) }
+    its('command') { should match(/--make-iptables-util-chains[=true]*/) }
   end
 end
 
@@ -125,8 +121,8 @@ control 'cis-kubernetes-benchmark-2.1.8' do
   tag cis: 'kubernetes:2.1.8'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should_not match(/--hostname-override/) }
+  describe docker_container(kubelet) do
+    its('command') { should_not match(/--hostname-override/) }
   end
 end
 
@@ -138,8 +134,8 @@ control 'cis-kubernetes-benchmark-2.1.9' do
   tag cis: 'kubernetes:2.1.9'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--event-qps=0/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--event-qps=0/) }
   end
 end
 
@@ -151,9 +147,9 @@ control 'cis-kubernetes-benchmark-2.1.10' do
   tag cis: 'kubernetes:2.1.10'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--tls-cert-file=/) }
-    it { should match(/--tls-private-key-file=/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--tls-cert-file=/) }
+    its('command') { should match(/--tls-private-key-file=/) }
   end
 end
 
@@ -165,8 +161,8 @@ control 'cis-kubernetes-benchmark-2.1.11' do
   tag cis: 'kubernetes:2.1.11'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--cadvisor-port=0/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--cadvisor-port=0/) }
   end
 end
 
@@ -178,9 +174,9 @@ control 'cis-kubernetes-benchmark-2.1.12' do
   tag cis: 'kubernetes:2.1.12'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--feature-gates=(?:.)*RotateKubeletClientCertificate=true,*(?:.)*/) }
-    it { should match(/--rotate-certificates=true/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--feature-gates=(?:.)*RotateKubeletClientCertificate=true,*(?:.)*/) }
+    its('command') { should match(/--rotate-certificates=true/) }
   end
 end
 
@@ -192,8 +188,8 @@ control 'cis-kubernetes-benchmark-2.1.13' do
   tag cis: 'kubernetes:2.1.13'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--feature-gates=(?:.)*RotateKubeletServerCertificate=true,*(?:.)*/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--feature-gates=(?:.)*RotateKubeletServerCertificate=true,*(?:.)*/) }
   end
 end
 
@@ -205,7 +201,7 @@ control 'cis-kubernetes-benchmark-2.1.14' do
   tag cis: 'kubernetes:2.1.14'
   tag level: 1
 
-  describe processes(kubelet).commands.to_s do
-    it { should match(/--tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256/) }
+  describe docker_container(kubelet) do
+    its('command') { should match(/--tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256/) }
   end
 end

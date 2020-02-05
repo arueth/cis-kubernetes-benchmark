@@ -20,23 +20,35 @@ class Kubernetes < Inspec.resource(1)
   desc 'Custom resource which abstracts the various kubernetes runtimes like hyperkube'
 
   def initialize
-    @is_hyperkube = inspec.file('/usr/bin/hyperkube').file?
-    Log.debug("The kubernetes installation uses hyperkube: #{@is_hyperkube}")
+
   end
 
-  def apiserver_bin
-    @is_hyperkube ? 'apiserver' : 'kube-apiserver'
+  def kubernetes_major_version
+    attribute('kubernetes_major_version')
   end
 
-  def scheduler_bin
-    'kube-scheduler'
+  def kubernetes_version
+    "#{attribute('kubernetes_major_version')}.#{attribute('kubernetes_minor_version')}.#{attribute('kubernetes_patch_version')}"
   end
 
-  def controllermanager_bin
-    @is_hyperkube ? 'controller-manager' : 'kube-controller-manager'
+  def apiserver_container
+    'ucp-kube-apiserver'
   end
 
-  def kubelet_bin
-    'kubelet'
+  def controllermanager_container
+    'ucp-kube-controller-manager'
   end
+
+  def etcd_container
+    'ucp-kv'
+  end
+
+  def kubelet_container
+    'ucp-kubelet'
+  end
+
+  def scheduler_container
+    'ucp-kube-scheduler'
+  end
+
 end

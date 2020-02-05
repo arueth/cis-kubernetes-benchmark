@@ -17,13 +17,7 @@
 
 title '1.5 Master Node: etcd'
 
-etcd_regex = Regexp.new(%r{/usr/bin/etcd})
-etcd_process = processes(etcd_regex)
-etcd_env_vars = process_env_var(etcd_regex)
-
-only_if('etcd not found') do
-  etcd_process.exists?
-end
+etcd = attribute('etcd_container', value: kubernetes.etcd_container)
 
 control 'cis-kubernetes-benchmark-1.5.1' do
   title 'Ensure that the --cert-file and --key-file arguments are set as appropriate'
@@ -34,22 +28,20 @@ control 'cis-kubernetes-benchmark-1.5.1' do
   tag level: 1
 
   describe.one do
-    describe etcd_process.commands.to_s do
-      it { should match(/--cert-file=/) }
+    describe docker_container(etcd) do
+      its('command') { should match(/--cert-file/) }
     end
-
-    describe etcd_env_vars do
-      its(:ETCD_CERT_FILE) { should_not be_empty }
+    describe docker.object(etcd) do
+      its(%w(Config Env)) { should include (/ETCD_CERT_FILE=*/) }
     end
   end
 
   describe.one do
-    describe etcd_process.commands.to_s do
-      it { should match(/--key-file=/) }
+    describe docker_container(etcd) do
+      its('command') { should match(/--key-file/) }
     end
-
-    describe etcd_env_vars do
-      its(:ETCD_KEY_FILE) { should_not be_empty }
+    describe docker.object(etcd) do
+      its(%w(Config Env)) { should include (/ETCD_KEY_FILE=*/) }
     end
   end
 end
@@ -63,12 +55,11 @@ control 'cis-kubernetes-benchmark-1.5.2' do
   tag level: 1
 
   describe.one do
-    describe etcd_process.commands.to_s do
-      it { should match(/--client-cert-auth=true/) }
+    describe docker_container(etcd) do
+      its('command') { should match(/--client-cert-auth=true/) }
     end
-
-    describe etcd_env_vars do
-      its(:ETCD_CLIENT_CERT_AUTH) { should_not be_empty }
+    describe docker.object(etcd) do
+      its(%w(Config Env)) { should include (/ETCD_CLIENT_CERT_AUTH=*/) }
     end
   end
 end
@@ -81,8 +72,8 @@ control 'cis-kubernetes-benchmark-1.5.3' do
   tag cis: 'kubernetes:1.5.3'
   tag level: 1
 
-  describe etcd_process.commands.to_s do
-    it { should_not match(/--auto-tls=true/) }
+  describe docker_container(etcd) do
+    its('command') { should_not match(/--auto-tls=true/) }
   end
 end
 
@@ -95,21 +86,21 @@ control 'cis-kubernetes-benchmark-1.5.4' do
   tag level: 1
 
   describe.one do
-    describe etcd_process.commands.to_s do
-      it { should match(/--peer-cert-file=/) }
+    describe docker_container(etcd) do
+      its('command') { should match(/--peer-cert-file=/) }
     end
 
-    describe etcd_env_vars do
+    describe docker_container(etcd) do
       its(:ETCD_PEER_CERT_FILE) { should_not be_empty }
     end
   end
 
   describe.one do
-    describe etcd_process.commands.to_s do
-      it { should match(/--peer-key-file=/) }
+    describe docker_container(etcd) do
+      its('command') { should match(/--peer-key-file=/) }
     end
 
-    describe etcd_env_vars do
+    describe docker_container(etcd) do
       its(:ETCD_PEER_KEY_FILE) { should_not be_empty }
     end
   end
@@ -124,11 +115,11 @@ control 'cis-kubernetes-benchmark-1.5.5' do
   tag level: 1
 
   describe.one do
-    describe etcd_process.commands.to_s do
-      it { should match(/--peer-client-cert-auth=true/) }
+    describe docker_container(etcd) do
+      its('command') { should match(/--peer-client-cert-auth /) }
     end
 
-    describe etcd_env_vars do
+    describe docker_container(etcd) do
       its(:ETCD_PEER_CLIENT_CERT_AUTH) { should_not be_empty }
     end
   end
@@ -142,8 +133,8 @@ control 'cis-kubernetes-benchmark-1.5.6' do
   tag cis: 'kubernetes:1.5.6'
   tag level: 1
 
-  describe etcd_process.commands.to_s do
-    it { should_not match(/--peer-auto-tls=true/) }
+  describe docker_container(etcd) do
+    its('command') { should_not match(/--peer-auto-tls=true/) }
   end
 end
 

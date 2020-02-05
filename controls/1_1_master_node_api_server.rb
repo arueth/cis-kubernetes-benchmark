@@ -17,13 +17,7 @@
 
 title '1.1 Master Node: API Server'
 
-apiserver = attribute('apiserver')
-# fallback if apiserver attribute is not defined
-apiserver = kubernetes.apiserver_bin if apiserver.empty?
-
-only_if('apiserver not found') do
-  processes(apiserver).exists?
-end
+apiserver = attribute('apiserver', value: kubernetes.apiserver_container)
 
 control 'cis-kubernetes-benchmark-1.1.1' do
   title 'Ensure that the --anonymous-auth argument is set to false'
@@ -33,8 +27,8 @@ control 'cis-kubernetes-benchmark-1.1.1' do
   tag cis: 'kubernetes:1.1.1'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--anonymous-auth=false/) }
+  describe docker_container(apiserver) do
+    its('command') { should include '--anonymous-auth=false' }
   end
 end
 
@@ -46,8 +40,8 @@ control 'cis-kubernetes-benchmark-1.1.2' do
   tag cis: 'kubernetes:1.1.2'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--basic-auth-file/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not include '--basic-auth-file' }
   end
 end
 
@@ -59,8 +53,8 @@ control 'cis-kubernetes-benchmark-1.1.3' do
   tag cis: 'kubernetes:1.1.3'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--insecure-allow-any-token/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not include '--insecure-allow-any-token' }
   end
 end
 
@@ -72,14 +66,6 @@ control 'cis-kubernetes-benchmark-1.1.4' do
   tag cis: 'kubernetes:1.1.4'
   tag level: 1
 
-  describe.one do
-    describe processes(apiserver).commands.to_s do
-      it { should match(/--kubelet-https=true/) }
-    end
-    describe processes(apiserver).commands.to_s do
-      it { should_not match(/--kubelet-https/) }
-    end
-  end
 end
 
 control 'cis-kubernetes-benchmark-1.1.5' do
@@ -90,8 +76,8 @@ control 'cis-kubernetes-benchmark-1.1.5' do
   tag cis: 'kubernetes:1.1.5'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--insecure-bind-address/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not include '--insecure-bind-address' }
   end
 end
 
@@ -103,8 +89,8 @@ control 'cis-kubernetes-benchmark-1.1.6' do
   tag cis: 'kubernetes:1.1.6'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--insecure-port=0/) }
+  describe docker_container(apiserver) do
+    its('command') { should include '--insecure-port=0' }
   end
 end
 
@@ -117,11 +103,11 @@ control 'cis-kubernetes-benchmark-1.1.7' do
   tag level: 1
 
   describe.one do
-    describe processes(apiserver).commands.to_s do
-      it { should match(/--secure-port=([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])/) }
+    describe docker_container(apiserver) do
+      its('command') { should match(/--secure-port=([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])/) }
     end
-    describe processes(apiserver).commands.to_s do
-      it { should_not match(/--secure-port/) }
+    describe docker_container(apiserver) do
+      its('command') { should_not match(/--secure-port/) }
     end
   end
 end
@@ -134,9 +120,9 @@ control 'cis-kubernetes-benchmark-1.1.8' do
   tag cis: 'kubernetes:1.1.8'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--profiling=false/) }
-  end
+  describe docker_container(apiserver) do
+      its('command') { should include '--profiling=false' }
+    end
 end
 
 control 'cis-kubernetes-benchmark-1.1.9' do
@@ -147,9 +133,6 @@ control 'cis-kubernetes-benchmark-1.1.9' do
   tag cis: 'kubernetes:1.1.9'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--repair-malformed-updates=false/) }
-  end
 end
 
 control 'cis-kubernetes-benchmark-1.1.10' do
@@ -160,9 +143,9 @@ control 'cis-kubernetes-benchmark-1.1.10' do
   tag cis: 'kubernetes:1.1.10'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--enable-admission-plugins=(?:.)*AlwaysAdmit,*(?:.)*/) }
-    it { should match(/--enable-admission-plugins=/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not match(/--enable-admission-plugins=(?:.)*AlwaysAdmit,*(?:.)*/) }
+    its('command') { should match(/--enable-admission-plugins=/) }
   end
 end
 
@@ -174,21 +157,21 @@ control 'cis-kubernetes-benchmark-1.1.11' do
   tag cis: 'kubernetes:1.1.11'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--enable-admission-plugins=(?:.)*AlwaysPullImages,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--enable-admission-plugins=(?:.)*AlwaysPullImages,*(?:.)*/) }
   end
 end
 
 control 'cis-kubernetes-benchmark-1.1.12' do
-  title '[Deprecated] Ensure that the admission control plugin DenyEscalatingExec is set'
-  desc "[Deprecated] Deny execution of `exec` and `attach` commands in privileged pods.\n\nRationale: Setting admission control policy to `DenyEscalatingExec` denies `exec` and `attach` commands to pods that run with escalated privileges that allow host access. This includes pods that run as privileged, have access to the host IPC namespace, and have access to the host PID namespace."
+  title '[Deprecated k8s-v1.13] Ensure that the admission control plugin DenyEscalatingExec is set'
+  desc "[Deprecated k8s-v1.13] Deny execution of `exec` and `attach` commands in privileged pods.\n\nRationale: Setting admission control policy to `DenyEscalatingExec` denies `exec` and `attach` commands to pods that run with escalated privileges that allow host access. This includes pods that run as privileged, have access to the host IPC namespace, and have access to the host PID namespace."
   impact 0.0
 
   tag cis: 'kubernetes:1.1.12'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--enable-admission-plugins=(?:.)*DenyEscalatingExec,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--enable-admission-plugins=(?:.)*DenyEscalatingExec,*(?:.)*/) }
   end
 end
 
@@ -200,8 +183,8 @@ control 'cis-kubernetes-benchmark-1.1.13' do
   tag cis: 'kubernetes:1.1.13'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--enable-admission-plugins=(?:.)*SecurityContextDeny,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--enable-admission-plugins=(?:.)*SecurityContextDeny,*(?:.)*/) }
   end
 end
 
@@ -213,8 +196,8 @@ control 'cis-kubernetes-benchmark-1.1.14' do
   tag cis: 'kubernetes:1.1.14'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--disable-admission-plugins=(?:.)*NamespaceLifecycle,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not match(/--disable-admission-plugins=(?:.)*NamespaceLifecycle,*(?:.)*/) }
   end
 end
 
@@ -226,8 +209,8 @@ control 'cis-kubernetes-benchmark-1.1.15' do
   tag cis: 'kubernetes:1.1.15'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--audit-log-path=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--audit-log-path=/) }
   end
 end
 
@@ -239,15 +222,15 @@ control 'cis-kubernetes-benchmark-1.1.16' do
   tag cis: 'kubernetes:1.1.16'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--audit-log-maxage=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--audit-log-maxage=/) }
   end
 
   audit_log_maxage = processes(apiserver).commands.to_s.scan(/--audit-log-maxage=(\d+)/)
 
   unless audit_log_maxage.empty?
     describe audit_log_maxage.last.first.to_i do
-      it { should cmp >= 30 }
+      its('command') { should cmp >= 30 }
     end
   end
 end
@@ -260,15 +243,15 @@ control 'cis-kubernetes-benchmark-1.1.17' do
   tag cis: 'kubernetes:1.1.17'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--audit-log-maxbackup=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--audit-log-maxbackup=/) }
   end
 
   audit_log_maxbackup = processes(apiserver).commands.to_s.scan(/--audit-log-maxbackup=(\d+)/)
 
   unless audit_log_maxbackup.empty?
     describe audit_log_maxbackup.last.first.to_i do
-      it { should cmp >= 10 }
+      its('command') { should cmp >= 10 }
     end
   end
 end
@@ -281,15 +264,15 @@ control 'cis-kubernetes-benchmark-1.1.18' do
   tag cis: 'kubernetes:1.1.18'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--audit-log-maxsize=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--audit-log-maxsize=/) }
   end
 
   audit_log_maxsize = processes(apiserver).commands.to_s.scan(/--audit-log-maxsize=(\d+)/)
 
   unless audit_log_maxsize.empty?
     describe audit_log_maxsize.last.first.to_i do
-      it { should cmp >= 100 }
+      its('command') { should cmp >= 100 }
     end
   end
 end
@@ -302,9 +285,9 @@ control 'cis-kubernetes-benchmark-1.1.19' do
   tag cis: 'kubernetes:1.1.19'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--authorization-mode=(?:.)*AlwaysAllow,*(?:.)*/) }
-    it { should match(/--authorization-mode=/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not match(/--authorization-mode=(?:.)*AlwaysAllow,*(?:.)*/) }
+    its('command') { should match(/--authorization-mode=/) }
   end
 end
 
@@ -316,8 +299,8 @@ control 'cis-kubernetes-benchmark-1.1.20' do
   tag cis: 'kubernetes:1.1.20'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--token-auth-file/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not match(/--token-auth-file/) }
   end
 end
 
@@ -329,8 +312,8 @@ control 'cis-kubernetes-benchmark-1.1.21' do
   tag cis: 'kubernetes:1.1.21'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--kubelet-certificate-authority=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--kubelet-certificate-authority=/) }
   end
 end
 
@@ -342,9 +325,9 @@ control 'cis-kubernetes-benchmark-1.1.22' do
   tag cis: 'kubernetes:1.1.22'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--kubelet-client-certificate=/) }
-    it { should match(/--kubelet-client-key=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--kubelet-client-certificate=/) }
+    its('command') { should match(/--kubelet-client-key=/) }
   end
 end
 
@@ -356,8 +339,8 @@ control 'cis-kubernetes-benchmark-1.1.23' do
   tag cis: 'kubernetes:1.1.23'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--service-account-lookup=true/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--service-account-lookup=true/) }
   end
 end
 
@@ -369,8 +352,8 @@ control 'cis-kubernetes-benchmark-1.1.24' do
   tag cis: 'kubernetes:1.1.25'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--enable-admission-plugins=(?:.)*PodSecurityPolicy,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--enable-admission-plugins=(?:.)*PodSecurityPolicy,*(?:.)*/) }
   end
 end
 
@@ -382,8 +365,8 @@ control 'cis-kubernetes-benchmark-1.1.25' do
   tag cis: 'kubernetes:1.1.25'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--service-account-key-file=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--service-account-key-file=/) }
   end
 end
 
@@ -395,9 +378,9 @@ control 'cis-kubernetes-benchmark-1.1.26' do
   tag cis: 'kubernetes:1.1.26'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--etcd-certfile=/) }
-    it { should match(/--etcd-keyfile=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--etcd-certfile=/) }
+    its('command') { should match(/--etcd-keyfile=/) }
   end
 end
 
@@ -409,8 +392,8 @@ control 'cis-kubernetes-benchmark-1.1.27' do
   tag cis: 'kubernetes:1.1.27'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--disable-admission-plugins=(?:.)*ServiceAccount,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not match(/--disable-admission-plugins=(?:.)*ServiceAccount,*(?:.)*/) }
   end
 end
 
@@ -422,9 +405,9 @@ control 'cis-kubernetes-benchmark-1.1.28' do
   tag cis: 'kubernetes:1.1.28'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--tls-cert-file=/) }
-    it { should match(/--tls-private-key-file=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--tls-cert-file=/) }
+    its('command') { should match(/--tls-private-key-file=/) }
   end
 end
 
@@ -436,8 +419,8 @@ control 'cis-kubernetes-benchmark-1.1.29' do
   tag cis: 'kubernetes:1.1.29'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--client-ca-file=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--client-ca-file=/) }
   end
 end
 
@@ -449,8 +432,8 @@ control 'cis-kubernetes-benchmark-1.1.30' do
   tag cis: 'kubernetes:1.1.30'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256/) }
   end
 end
 
@@ -462,8 +445,8 @@ control 'cis-kubernetes-benchmark-1.1.31' do
   tag cis: 'kubernetes:1.1.31'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--etcd-cafile/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--etcd-cafile/) }
   end
 end
 
@@ -475,8 +458,8 @@ control 'cis-kubernetes-benchmark-1.1.32' do
   tag cis: 'kubernetes:1.1.32'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--authorization-mode=(?:.)*Node,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--authorization-mode=(?:.)*Node,*(?:.)*/) }
   end
 end
 
@@ -488,8 +471,8 @@ control 'cis-kubernetes-benchmark-1.1.33' do
   tag cis: 'kubernetes:1.1.33'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--enable-admission-plugins=(?:.)*NodeRestriction,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--enable-admission-plugins=(?:.)*NodeRestriction,*(?:.)*/) }
   end
 end
 
@@ -501,8 +484,8 @@ control 'cis-kubernetes-benchmark-1.1.34' do
   tag cis: 'kubernetes:1.1.34'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--experimental-encryption-provider-config=/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--experimental-encryption-provider-config=/) }
   end
 end
 
@@ -527,8 +510,8 @@ control 'cis-kubernetes-benchmark-1.1.36' do
   tag cis: 'kubernetes:1.1.36'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--enable-admission-plugins=(?:.)*EventRateLimit,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--enable-admission-plugins=(?:.)*EventRateLimit,*(?:.)*/) }
   end
 end
 
@@ -540,8 +523,8 @@ control 'cis-kubernetes-benchmark-1.1.37' do
   tag cis: 'kubernetes:1.1.37'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should_not match(/--feature-gates=(?:.)*AdvancedAuditing=false,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should_not match(/--feature-gates=(?:.)*AdvancedAuditing=false,*(?:.)*/) }
   end
 end
 
@@ -566,7 +549,7 @@ control 'cis-kubernetes-benchmark-1.1.39' do
   tag cis: 'kubernetes:1.1.39'
   tag level: 1
 
-  describe processes(apiserver).commands.to_s do
-    it { should match(/--authorization-mode=(?:.)*RBAC,*(?:.)*/) }
+  describe docker_container(apiserver) do
+    its('command') { should match(/--authorization-mode=(?:.)*RBAC,*(?:.)*/) }
   end
 end
